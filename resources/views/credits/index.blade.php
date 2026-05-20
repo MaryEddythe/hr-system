@@ -183,10 +183,7 @@
         <div class="page-title">Leave Credits</div>
         <div class="page-subtitle">All employee leave benefits and credit status</div>
     </div>
-    <div style="display:flex; gap:0.75rem; align-items:center;">
-        <button onclick="openCreateModal()" class="btn btn-primary">+ Add Leave Credit</button>
-        <button onclick="openCreateCtoModal()" class="btn btn-outline-primary">+ Add CTO</button>
-    </div>
+    <button onclick="openCreateModal()" class="btn btn-primary">+ Add Leave Credit</button>
 </div>
 
 <div class="table-wrapper">

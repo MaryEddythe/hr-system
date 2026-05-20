@@ -28,3 +28,14 @@
     </div>
 </nav>
 
+<!-- remove any "Add CTO" button/link present anywhere on the page -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('a,button,input[type="button"],input[type="submit"],span').forEach(function(el){
+        if (el.textContent && el.textContent.trim() === 'Add CTO') {
+            el.remove();
+        }
+    });
+});
+</script>
+
