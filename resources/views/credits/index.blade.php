@@ -468,22 +468,22 @@
 
         updateCreditHoursVisibility();
 
-        // If CTO flow was initiated, preselect CTO when it exists in allowed list
+        // If CTO flow was initiated, prefer Credited Time-Off when available for any employment type
         if (window.__createCtoMode === true) {
-            if (allowed.includes('Credited Time-Off') && employmentType !== 'COS') {
+            if (allowed.includes('Credited Time-Off')) {
                 creditTypeSelect.value = 'Credited Time-Off';
                 updateCreditHoursVisibility();
                 return;
             }
 
-            // Business rule: COS can only have Wellness Leave
+            // Fallback for COS or others: choose Wellness Leave if available
             if (employmentType === 'COS' && allowed.includes('Wellness Leave')) {
                 creditTypeSelect.value = 'Wellness Leave';
                 updateCreditHoursVisibility();
             }
         } else {
-            // Default behavior: for COS, select Wellness Leave if it's the only option
-            if (employmentType === 'COS' && allowed.includes('Wellness Leave')) {
+            // Default behavior: for COS, select Wellness Leave if it's an option and none selected
+            if (employmentType === 'COS' && allowed.includes('Wellness Leave') && creditTypeSelect.value === '') {
                 creditTypeSelect.value = 'Wellness Leave';
                 updateCreditHoursVisibility();
             }
@@ -561,13 +561,16 @@
 
         updateCreditTypeOptions();
 
-        // If user opened the "Add CTO" flow, preselect CTO (or Wellness for COS)
+        // If user opened the "Add CTO" flow, preselect CTO when available; otherwise fallback to Wellness for COS
         if (window.__createCtoMode === true) {
             const trimmed = (employmentType || '').toString().trim();
-            if (trimmed === 'COS') {
-                creditTypeSelect.value = 'Wellness Leave';
-            } else {
+            const allowed = leaveTypesByEmploymentType[trimmed] || [];
+            if (allowed.includes('Credited Time-Off')) {
                 creditTypeSelect.value = 'Credited Time-Off';
+            } else if (trimmed === 'COS' && allowed.includes('Wellness Leave')) {
+                creditTypeSelect.value = 'Wellness Leave';
+            } else if (allowed.length) {
+                creditTypeSelect.value = allowed[0];
             }
             updateCreditHoursVisibility();
         }

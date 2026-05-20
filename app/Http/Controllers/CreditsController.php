@@ -28,9 +28,10 @@ class CreditsController extends Controller
             'Vacation Leave',
         ];
 
-        // Business rule: COS employees are only entitled to Wellness Leave
+        // Business rule: COS employees are only entitled to Wellness Leave and CTO
         $leaveTypesCos = [
             'Wellness Leave',
+            'Credited Time-Off',
         ];
 
         return view('credits.index', compact('allBenefits', 'leaveTypesPermanent', 'leaveTypesCos'));
@@ -53,6 +54,7 @@ class CreditsController extends Controller
 
         $leaveTypesCos = [
             'Wellness Leave',
+            'Credited Time-Off',
         ];
 
         return view('credits.edit', [
