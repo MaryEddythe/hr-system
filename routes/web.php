@@ -22,6 +22,10 @@ Route::resource('divisions', DivisionController::class)
 Route::get('credits', [CreditsController::class, 'index'])
     ->name('credits.index');
 
+Route::get('credits/cto', [CreditsController::class, 'cto'])
+    ->name('credits.cto');
+
+
 Route::post('credits', [CreditsController::class, 'store'])
     ->name('credits.store');
 

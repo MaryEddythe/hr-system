@@ -17,6 +17,7 @@ class CreditsController extends Controller
             ->orderBy('start_date', 'desc')
             ->get();
 
+
         $leaveTypesPermanent = [
             'Special Emergency Leave',
             'Rehabilitation Leave',
@@ -34,8 +35,44 @@ class CreditsController extends Controller
             'Credited Time-Off',
         ];
 
-        return view('credits.index', compact('allBenefits', 'leaveTypesPermanent', 'leaveTypesCos'));
+        return view('credits.leave-credits', compact('allBenefits', 'leaveTypesPermanent', 'leaveTypesCos'));
     }
+
+    public function cto(): View
+    {
+        $allBenefits = EmployeeLeaveBenefit::with('employee')
+            ->orderBy('start_date', 'desc')
+            ->get();
+
+        $ctoBenefits = $allBenefits->filter(function ($benefit) {
+            $type = strtolower(trim((string) $benefit->credit_type));
+            return $type === 'credited time-off' || str_contains($type, 'cto') || $type === 'credited time off';
+        })->values();
+
+        // Keep same leave-type arrays so the CTO page can reuse future UI if needed
+        $leaveTypesPermanent = [
+            'Special Emergency Leave',
+            'Rehabilitation Leave',
+            'Solo Parent Leave',
+            'Paternity Leave',
+            'Maternity Leave',
+            'Special Privilege Leave',
+            'Wellness Leave',
+            'Vacation Leave',
+        ];
+
+        $leaveTypesCos = [
+            'Wellness Leave',
+            'Credited Time-Off',
+        ];
+
+        return view('credits.cto', [
+            'ctoBenefits' => $ctoBenefits,
+            'leaveTypesPermanent' => $leaveTypesPermanent,
+            'leaveTypesCos' => $leaveTypesCos,
+        ]);
+    }
+
 
     public function edit(EmployeeLeaveBenefit $credit): View
     {
