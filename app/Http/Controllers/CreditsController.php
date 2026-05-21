@@ -122,7 +122,17 @@ class CreditsController extends Controller
         $credit->status = $validated['status'];
 
         $typeLower = strtolower(trim((string) $validated['credit_type']));
-        $isCto = $typeLower === 'credited time-off' || str_contains($typeLower, 'cto');
+
+        // Canonicalize CTO input so employee profile filters work reliably.
+        $isCtoInput = $typeLower === 'credited time-off' || $typeLower === 'credited time off' || str_contains($typeLower, 'cto');
+        if ($isCtoInput) {
+            $credit->credit_type = 'Credited Time-Off';
+        } else {
+            $credit->credit_type = $validated['credit_type'];
+        }
+
+        $isCto = $credit->credit_type === 'Credited Time-Off';
+
 
         if ($isCto) {
             $credit->credit_hours = isset($validated['credit_hours']) ? (int) $validated['credit_hours'] : 0;
@@ -202,8 +212,15 @@ class CreditsController extends Controller
         $creditType = (string) $validated['credit_type'];
         $typeLower = strtolower(trim($creditType));
 
+        // Canonicalize CTO input so employee profile filters work reliably.
+        $isCtoInput = $typeLower === 'credited time-off' || $typeLower === 'credited time off' || str_contains($typeLower, 'cto');
+        if ($isCtoInput) {
+            $creditType = 'Credited Time-Off';
+        }
+
         $isDayBased = str_contains($typeLower, 'vacation')
             || str_contains($typeLower, 'sick')
+
             || str_contains($typeLower, 'wellness')
             || str_contains($typeLower, 'maternity')
             || str_contains($typeLower, 'paternity')
@@ -217,7 +234,8 @@ class CreditsController extends Controller
         $dayCount = (int) $start->diffInDays($end) + 1;
 
         $creditHoursInput = isset($validated['credit_hours']) ? (int) $validated['credit_hours'] : null;
-        $isCto = $typeLower === 'credited time-off' || str_contains($typeLower, 'cto');
+        $isCto = $creditType === 'Credited Time-Off';
+
 
         if ($isCto) {
             $creditHours = $creditHoursInput ?? 0;
