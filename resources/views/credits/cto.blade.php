@@ -260,11 +260,14 @@
 
                 <div class="search-container">
                     <label class="form-group-label">Employees (Multiple Selection) *</label>
-                    <div class="search-bar" id="employeeSearchBar" onclick="document.getElementById('ctoEmployeeSearch').focus()">
-                        <div id="selectedEmployeesList"></div>
-                        <input type="text" id="ctoEmployeeSearch" class="search-bar-input" placeholder="Type to search employees..." autocomplete="off">
+                    <div class="search-container" id="employeeSearchWrap">
+                        <div class="search-bar" id="employeeSearchBar" onclick="document.getElementById('ctoEmployeeSearch').focus()">
+                            <div id="selectedEmployeesList"></div>
+                            <input type="text" id="ctoEmployeeSearch" class="search-bar-input" placeholder="Type to search employees..." autocomplete="off">
+                        </div>
+                        <div class="search-results" id="ctoSearchResults" style="display:none;"></div>
                     </div>
-                    <div class="search-results" id="ctoSearchResults" style="display:none;"></div>
+
                     <input type="hidden" id="selectedEmployeeIds" name="employee_ids" value="[]">
                 </div>
 
@@ -548,4 +551,9 @@
         });
     });
 </script>
+
+
+
 @endsection
+
+
