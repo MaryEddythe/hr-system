@@ -80,26 +80,35 @@
 
     /* ===== MULTIPLE EMPLOYEE SEARCH STYLES ===== */
     .search-container {
-        margin-bottom: 1.5rem;
-        position: relative;
+    margin-bottom: 1.5rem;
+    position: relative;
     }
+
     .search-bar {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         gap: 0.35rem;
+        width: 100%;
+        min-height: 46px;
         padding: 0.55rem 0.75rem;
+
         border: 1px solid #cbd5e1;
         border-radius: 5px;
+
         background: #fff;
+
         transition: all 0.2s ease;
-        min-height: 44px;
-        cursor: text;
+        box-sizing: border-box;
     }
+
     .search-bar.focused {
         border-color: #0066cc;
-        box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.08), 0 0 0 1px rgba(0, 102, 204, 0.2);
+        box-shadow:
+            0 0 0 3px rgba(0, 102, 204, 0.08),
+            0 0 0 1px rgba(0, 102, 204, 0.2);
     }
+
     #selectedEmployeesList {
         display: contents;
     }
@@ -130,38 +139,47 @@
         text-overflow: ellipsis;
     }
     .employee-pill-remove {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0 0.1rem;
-        margin: 0;
-        font-size: 1rem;
-        line-height: 1;
-        color: #3b82f6;
-        transition: color 0.15s;
-        display: flex;
-        align-items: center;
+    background: none;
+    border: none;
+
+    cursor: pointer;
+
+    font-size: 1rem;
+    line-height: 1;
+
+    color: #3b82f6;
     }
+
     .employee-pill-remove:hover {
         color: #1e3a8a;
     }
     .search-bar-input {
-        flex: 1;
-        min-width: 120px;
-        border: none;
-        outline: none;
-        font-size: 0.9rem;
-        font-family: inherit;
-        color: #111827;
-        background: transparent;
-        padding: 0.35rem 0;
-        height: 22px;
+    flex: 1;
+    min-width: 140px;
+
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+
+    background: transparent !important;
+
+    padding: 0.25rem 0 !important;
+    margin: 0 !important;
+
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: #111827;
+
+    height: auto !important;
+    }   
+    .search-bar-input:focus {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
     }
+
     .search-bar-input::placeholder {
         color: #94a3b8;
-    }
-    .search-bar-input:focus {
-        outline: none;
     }
 
     /* Match form-controls to search bar style */
@@ -187,10 +205,10 @@
     /* Dropdown — flush against the bar */
     .search-results {
         position: absolute;
-        top: 100%;
+        top: calc(100% + 6px);
         left: 0;
         right: 0;
-        margin-top: 2px;
+        margin-top: 0;
         background: #fff;
         border: 1px solid #e2e8f0;
         border-radius: 8px;
@@ -258,18 +276,34 @@
             @csrf
             <div class="modal-body">
 
-                <div class="search-container">
-                    <label class="form-group-label">Employees (Multiple Selection) *</label>
-                    <div class="search-container" id="employeeSearchWrap">
-                        <div class="search-bar" id="employeeSearchBar" onclick="document.getElementById('ctoEmployeeSearch').focus()">
-                            <div id="selectedEmployeesList"></div>
-                            <input type="text" id="ctoEmployeeSearch" class="search-bar-input" placeholder="Type to search employees..." autocomplete="off">
-                        </div>
-                        <div class="search-results" id="ctoSearchResults" style="display:none;"></div>
-                    </div>
+                <div class="search-container" id="employeeSearchWrap">
+    <label class="form-group-label">Employees (Multiple Selection) *</label>
 
-                    <input type="hidden" id="selectedEmployeeIds" name="employee_ids" value="[]">
-                </div>
+        <div class="search-bar" id="employeeSearchBar">
+            <div id="selectedEmployeesList"></div>
+
+            <input
+                type="text"
+                id="ctoEmployeeSearch"
+                class="search-bar-input"
+                placeholder="Type to search employees..."
+                autocomplete="off"
+            >
+        </div>
+
+        <div
+            class="search-results"
+            id="ctoSearchResults"
+            style="display:none;"
+        ></div>
+
+        <input
+            type="hidden"
+            id="selectedEmployeeIds"
+            name="employee_ids"
+            value="[]"
+        >
+</div>
 
                 <input type="hidden" name="credit_type" value="Credited Time-Off" />
 
