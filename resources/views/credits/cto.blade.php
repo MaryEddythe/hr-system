@@ -15,15 +15,300 @@
         flex-direction: column;
         gap: 0.25rem;
     }
+
+    /* Popup modal for Add CTO */
+    .modal-overlay{
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 2000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    .modal-overlay.active {
+        display: flex;
+    }
+    .modal-content{
+        background: #fff;
+        border-radius: 10px;
+        width: 100%;
+        max-width: 650px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
+    .modal-header{
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+        display:flex;
+        align-items:center;
+        justify-content: space-between;
+        gap:1rem;
+    }
+    .modal-title{ font-size: 1.2rem; font-weight: 800; color:#0f172a; }
+    .modal-close{
+        background:none;
+        border:none;
+        font-size: 1.5rem;
+        cursor:pointer;
+        color:#64748b;
+        line-height:1;
+    }
+    .modal-body{ padding: 1.25rem 1.5rem; }
+    .modal-footer{
+        padding: 1.25rem 1.5rem;
+        border-top: 1px solid #e2e8f0;
+        display:flex;
+        justify-content:flex-end;
+        gap:0.75rem;
+    }
+
+    .form-group-label{
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        display:block;
+    }
+
+    /* ===== MULTIPLE EMPLOYEE SEARCH STYLES ===== */
+    .search-container {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+    .search-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.55rem 0.75rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 5px;
+        background: #fff;
+        transition: all 0.2s ease;
+        min-height: 44px;
+        cursor: text;
+    }
+    .search-bar.focused {
+        border-color: #0066cc;
+        box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.08), 0 0 0 1px rgba(0, 102, 204, 0.2);
+    }
+    #selectedEmployeesList {
+        display: contents;
+    }
+    .employee-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.2rem 0.35rem 0.2rem 0.55rem;
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        border: 1px solid #93c5fd;
+        border-radius: 16px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #1e40af;
+        line-height: 1.4;
+        white-space: nowrap;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        animation: pillIn 0.15s ease-out;
+    }
+    @keyframes pillIn {
+        from { opacity: 0; transform: scale(0.85); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    .employee-pill-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .employee-pill-remove {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0 0.1rem;
+        margin: 0;
+        font-size: 1rem;
+        line-height: 1;
+        color: #3b82f6;
+        transition: color 0.15s;
+        display: flex;
+        align-items: center;
+    }
+    .employee-pill-remove:hover {
+        color: #1e3a8a;
+    }
+    .search-bar-input {
+        flex: 1;
+        min-width: 120px;
+        border: none;
+        outline: none;
+        font-size: 0.9rem;
+        font-family: inherit;
+        color: #111827;
+        background: transparent;
+        padding: 0.35rem 0;
+        height: 22px;
+    }
+    .search-bar-input::placeholder {
+        color: #94a3b8;
+    }
+    .search-bar-input:focus {
+        outline: none;
+    }
+
+    /* Match form-controls to search bar style */
+    .modal-body .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        font-family: inherit;
+        color: #111827;
+        background: #fff;
+        transition: all 0.2s ease;
+        height: 44px;
+        box-sizing: border-box;
+    }
+    .modal-body .form-control:focus {
+        outline: none;
+        border-color: #0066cc;
+        box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.08), 0 0 0 1px rgba(0, 102, 204, 0.2);
+    }
+
+    /* Dropdown — flush against the bar */
+    .search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        margin-top: 2px;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        max-height: 260px;
+        overflow-y: auto;
+        z-index: 20;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+    .search-result-item {
+        width: 100%;
+        padding: 0.65rem 1rem;
+        border: none;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.88rem;
+        color: #111827;
+        transition: background-color 0.12s ease;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .search-result-item:hover {
+        background-color: #f0f7ff;
+    }
+    .search-result-item:last-child {
+        border-bottom: none;
+    }
+    .search-result-item.already-selected {
+        background-color: #f0f9ff;
+    }
+    .search-result-empty {
+        padding: 1rem;
+        text-align: center;
+        color: #94a3b8;
+        font-size: 0.85rem;
+    }
+
+    /* Hidden multi-select field for form submission */
+    #selectedEmployeeIds {
+        display: none;
+    }
 </style>
+
 
 <div class="page-header">
     <div class="credits-info">
         <div class="page-title">CTO</div>
         <div class="page-subtitle">Credited Time-Off credits and credit status</div>
     </div>
-    <a href="{{ route('credits.index') }}" class="btn btn-outline">Back to Leave Credits</a>
+
+    <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+        <button type="button" class="btn btn-primary" onclick="openCreateCtoModal()">+ Add CTO</button>
+        <a href="{{ route('credits.index') }}" class="btn btn-outline">Back to Leave Credits</a>
+    </div>
 </div>
+
+<div class="modal-overlay" id="createCtoModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Add CTO</h2>
+            <button class="modal-close" onclick="closeCreateCtoModal()">×</button>
+        </div>
+
+        <form method="POST" action="{{ route('credits.store') }}" onsubmit="handleSubmit(event)">
+            @csrf
+            <div class="modal-body">
+
+                <div class="search-container">
+                    <label class="form-group-label">Employees (Multiple Selection) *</label>
+                    <div class="search-container" id="employeeSearchWrap">
+                        <div class="search-bar" id="employeeSearchBar" onclick="document.getElementById('ctoEmployeeSearch').focus()">
+                            <div id="selectedEmployeesList"></div>
+                            <input type="text" id="ctoEmployeeSearch" class="search-bar-input" placeholder="Type to search employees..." autocomplete="off">
+                        </div>
+                        <div class="search-results" id="ctoSearchResults" style="display:none;"></div>
+                    </div>
+
+                    <input type="hidden" id="selectedEmployeeIds" name="employee_ids" value="[]">
+                </div>
+
+                <input type="hidden" name="credit_type" value="Credited Time-Off" />
+
+                <div class="form-grid">
+                    <div>
+                        <label class="form-group-label">Start Date *</label>
+                        <input type="text" name="start_date" id="ctoStartDate" class="form-control" placeholder="mm/dd/yyyy" autocomplete="off" required>
+                    </div>
+                    <div>
+                        <label class="form-group-label">End Date</label>
+                        <input type="text" name="end_date" id="ctoEndDate" class="form-control" placeholder="mm/dd/yyyy" autocomplete="off">
+                    </div>
+                </div>
+
+
+                <div class="form-grid">
+                    <div>
+                        <label class="form-group-label">Credit Hours *</label>
+                        <input type="number" name="credit_hours" id="ctoCreditHours" class="form-control" min="0" step="1" placeholder="Enter hours" required />
+                    </div>
+                    <div>
+                        <label class="form-group-label">Remarks</label>
+                        <input type="text" name="remarks" class="form-control" placeholder="Remarks (optional)">
+                    </div>
+                </div>
+
+                <input type="hidden" name="date_applied" id="ctoDateApplied" />
+                <input type="hidden" name="date_effective" id="ctoDateEffective" />
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="closeCreateCtoModal()" class="btn btn-outline">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create CTO</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 
 <div class="table-wrapper">
     <table>
@@ -78,5 +363,197 @@
         </tbody>
     </table>
 </div>
+
+<script>
+    let selectedEmployees = [];
+    let lastSearchItems = [];
+
+    function openCreateCtoModal(){
+        const el = document.getElementById('createCtoModal');
+        if(!el) return;
+        el.classList.add('active');
+        selectedEmployees = [];
+        lastSearchItems = [];
+        renderSelectedEmployees();
+        document.getElementById('ctoEmployeeSearch').value = '';
+        document.getElementById('ctoSearchResults').style.display = 'none';
+    }
+
+    function closeCreateCtoModal(){
+        const el = document.getElementById('createCtoModal');
+        if(!el) return;
+        el.classList.remove('active');
+        selectedEmployees = [];
+        lastSearchItems = [];
+        document.getElementById('selectedEmployeesList').innerHTML = '';
+        document.getElementById('ctoSearchResults').style.display = 'none';
+    }
+
+    function handleSubmit(event){
+        const hiddenField = document.getElementById('selectedEmployeeIds');
+        if (selectedEmployees.length === 0) {
+            event.preventDefault();
+            alert('Please select at least one employee.');
+            return false;
+        }
+        hiddenField.value = JSON.stringify(selectedEmployees.map(e => e.id));
+    }
+
+    async function searchEmployees(query) {
+        if (!query || query.trim().length < 1) return [];
+
+        const res = await fetch(`{{ route('api.employees.search') }}?q=${encodeURIComponent(query)}`);
+        if (!res.ok) return [];
+        return await res.json();
+    }
+
+    function showDropdown() {
+        const resultsEl = document.getElementById('ctoSearchResults');
+        if (resultsEl) resultsEl.style.display = 'block';
+    }
+
+    function hideDropdown() {
+        const resultsEl = document.getElementById('ctoSearchResults');
+        if (resultsEl) resultsEl.style.display = 'none';
+    }
+
+    function renderSearchResults(items) {
+        const resultsEl = document.getElementById('ctoSearchResults');
+        if (!resultsEl) return;
+
+        if (!items || items.length === 0) {
+            resultsEl.innerHTML = '<div class="search-result-empty">No employees found</div>';
+            showDropdown();
+            return;
+        }
+
+        const selectedIds = new Set(selectedEmployees.map(e => e.id));
+        resultsEl.innerHTML = items.map(item => {
+            const isSelected = selectedIds.has(item.id);
+            return `
+                <button type="button" class="search-result-item ${isSelected ? 'already-selected' : ''}" data-employee-id="${item.id}">
+                    <div style="font-weight:700">${item.full_name}${isSelected ? ' <span style="color:#3b82f6;font-size:0.75em;">✓ selected</span>' : ''}</div>
+                    <div style="font-size:0.82em; color:#64748b;">${item.employee_id} · ${item.division_code}</div>
+                </button>
+            `;
+        }).join('');
+
+        showDropdown();
+    }
+
+    function attachResultClickHandlers() {
+        const resultsEl = document.getElementById('ctoSearchResults');
+        if (!resultsEl) return;
+
+        resultsEl.querySelectorAll('.search-result-item').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const employeeId = parseInt(btn.getAttribute('data-employee-id'));
+                const selected = lastSearchItems.find(x => x.id === employeeId);
+
+                if (!selected) return;
+
+                const existsIndex = selectedEmployees.findIndex(e => e.id === employeeId);
+                if (existsIndex > -1) {
+                    selectedEmployees.splice(existsIndex, 1);
+                } else {
+                    selectedEmployees.push(selected);
+                }
+
+                const searchInput = document.getElementById('ctoEmployeeSearch');
+                searchInput.value = '';
+                searchInput.focus();
+
+                renderSelectedEmployees();
+                renderSearchResults(lastSearchItems);
+                attachResultClickHandlers();
+            });
+        });
+    }
+
+    function renderSelectedEmployees() {
+        const listEl = document.getElementById('selectedEmployeesList');
+        const searchBar = document.getElementById('employeeSearchBar');
+        const searchInput = document.getElementById('ctoEmployeeSearch');
+
+        if (!listEl || !searchBar) return;
+
+        if (selectedEmployees.length === 0) {
+            listEl.innerHTML = '';
+            searchBar.classList.remove('has-pills');
+            searchInput.placeholder = 'Type to search employees...';
+            return;
+        }
+
+        searchBar.classList.add('has-pills');
+        searchInput.placeholder = '';
+
+        listEl.innerHTML = selectedEmployees.map(emp => `
+            <span class="employee-pill">
+                <span class="employee-pill-name">${emp.full_name}</span>
+                <button type="button" class="employee-pill-remove" onclick="removeSelectedEmployee(${emp.id}, event)">&times;</button>
+            </span>
+        `).join('');
+    }
+
+    function removeSelectedEmployee(employeeId, event) {
+        event.preventDefault();
+        event.stopPropagation();
+        selectedEmployees = selectedEmployees.filter(e => e.id !== employeeId);
+        renderSelectedEmployees();
+
+        if (lastSearchItems.length > 0) {
+            renderSearchResults(lastSearchItems);
+            attachResultClickHandlers();
+        }
+
+        document.getElementById('ctoEmployeeSearch').focus();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const searchInput = document.getElementById('ctoEmployeeSearch');
+        const searchBar = document.getElementById('employeeSearchBar');
+
+        if (!searchInput || !searchBar) return;
+
+        let debounceTimer = null;
+
+        searchInput.addEventListener('focus', () => {
+            searchBar.classList.add('focused');
+        });
+
+        searchInput.addEventListener('blur', () => {
+            searchBar.classList.remove('focused');
+            setTimeout(() => { hideDropdown(); }, 150);
+        });
+
+        searchInput.addEventListener('input', () => {
+            const q = searchInput.value;
+
+            clearTimeout(debounceTimer);
+            if (!q || q.trim().length === 0) {
+                hideDropdown();
+                return;
+            }
+
+            debounceTimer = setTimeout(async () => {
+                const items = await searchEmployees(q);
+                lastSearchItems = items;
+                renderSearchResults(items);
+                attachResultClickHandlers();
+            }, 200);
+        });
+
+        document.addEventListener('keydown', function(e){
+            if(e.key === 'Escape'){
+                closeCreateCtoModal();
+            }
+        });
+    });
+</script>
+
+
+
 @endsection
+
 

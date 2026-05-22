@@ -245,8 +245,31 @@
 @endphp
 
 
-<div class="card">
+    @php
+        // CTO totals (stored in employee_leave_benefits as credit_type containing 'Credited Time-Off' / 'CTO')
+        $ctoCredits = $employee->leaveBenefits()
+            ->whereRaw('LOWER(credit_type) = ?', ['credited time-off'])
+            ->orWhereRaw('LOWER(credit_type) LIKE ?', ['%cto%'])
+            ->get();
+
+        $ctoTotalHours = (int) $ctoCredits->sum('credit_hours');
+    @endphp
+
+    <div class="card">
+    <div class="card-title">CTO Summary</div>
+
+        <div class="info-row">
+            <span class="info-label">Credited Time-Off (Total Hours)</span>
+            <span class="info-value">
+                {{ $ctoTotalHours }} hours
+            </span>
+        </div>
+
+    </div>
+
+    <div class="card">
     <div class="card-title">Leave Benefits</div>
+
 
     @foreach($benefitRows as $row)
         @php

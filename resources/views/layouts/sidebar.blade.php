@@ -1,23 +1,50 @@
-<button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="true">
-    <span class="sidebar-toggle-icon" aria-hidden="true">›</span>
-</button>
-
-
 <nav class="sidebar" id="appSidebar">
     <a href="{{ route('employees.index') }}" class="brand">
-        <span class="brand-full">HR File System</span>
-        <span class="brand-short">HR</span>
+        <span class="brand-full">
+            <span class="brand-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                    <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                </svg>
+            </span>
+            <span class="brand-text">
+                HR File System
+            </span>
+        </span>
+        <span class="brand-short">
+            <span class="brand-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                    <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                </svg>
+            </span>
+            HR
+        </span>
     </a>
 
-
-
     <div class="nav-links">
-        <a href="{{ route('employees.index') }}" class="{{ request()->routeIs('employees.*') ? 'active' : '' }}">Employees</a>
+        <div class="nav-section-label">Main Menu</div>
+
+        <a href="{{ route('employees.index') }}" class="{{ request()->routeIs('employees.*') ? 'active' : '' }}">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Employees
+        </a>
 
         <div class="nav-dropdown">
             <button type="button" class="nav-dropdown-toggle {{ request()->routeIs('credits.*') ? 'active' : '' }}" onclick="toggleCreditsDropdown()">
-                <span>LEAVE CREDITS</span>
-                <span class="nav-dropdown-arrow" id="creditsDropdownArrow">▾</span>
+                <span class="nav-dropdown-left">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                        <line x1="1" y1="10" x2="23" y2="10"/>
+                    </svg>
+                    Leave Credits
+                </span>
+                <span class="nav-dropdown-arrow" id="creditsDropdownArrow">&#9662;</span>
             </button>
             <div class="nav-dropdown-menu" id="creditsDropdownMenu">
                 <a href="{{ route('credits.cto') }}" class="{{ request()->routeIs('credits.cto') ? 'active' : '' }}">CTO</a>
@@ -25,63 +52,6 @@
             </div>
         </div>
     </div>
-
-    <style>
-        .nav-dropdown{ position: relative; }
-.nav-dropdown-toggle{
-            width: 100%;
-            background: transparent;
-            border: none;
-            color: #ffffff;
-            padding: 0.6rem 0.75rem;
-            cursor: pointer;
-            text-align: left;
-            font: inherit;
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            gap: 0.75rem;
-        }
-        .nav-dropdown-arrow{
-            display:inline-block;
-            transition: transform 0.15s ease;
-        }
-        .nav-dropdown-menu{
-            display: none;
-            position: absolute;
-            left: 0;
-            top: 100%;
-            min-width: 220px;
-            background: #0b3b87;
-            border-radius: 6px;
-            padding: 0.35rem;
-            z-index: 50;
-        }
-        .nav-dropdown-menu a{
-            display: block;
-            padding: 0.35rem 0.75rem;
-            text-decoration: none;
-            color: #ffffff;
-            border-radius: 4px;
-            opacity: 1;
-            font-size: 0.82rem;
-        }
-        .nav-dropdown-menu a:hover{
-            background: transparent;
-        }
-        .nav-dropdown-menu a.active{
-            background: transparent !important;
-            color: #ffffff !important;
-        }
-        .nav-dropdown-menu a.active:hover{
-            background: transparent !important;
-        }
-
-        /* JS-controlled open state */
-        .nav-dropdown.open .nav-dropdown-menu{ display:block; }
-        .nav-dropdown.open #creditsDropdownArrow{ transform: rotate(180deg); }
-    </style>
-
 
     <div class="nav-user">
         <div class="user-info">
@@ -91,38 +61,42 @@
                 <span class="user-role">Administrator</span>
             </div>
         </div>
-        <a href="#logout">Logout</a>
+        <a href="#logout">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Logout
+        </a>
     </div>
 </nav>
 
-<!-- remove any "Add CTO" button/link present anywhere on the page -->
 <script>
 function toggleCreditsDropdown(){
     const dropdown = document.querySelector('.nav-dropdown');
-    if(!dropdown) return;
+    if (!dropdown) return;
     dropdown.classList.toggle('open');
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Ensure dropdown toggle works on first render as well
     window.toggleCreditsDropdown = toggleCreditsDropdown;
 
-    document.querySelectorAll('a,button,input[type="button"],input[type="submit"],span').forEach(function(el){
-        if (el.textContent && el.textContent.trim() === 'Add CTO') {
-            el.remove();
-        }
-    });
+    // Auto-open dropdown if a child route is active
+    const dropdown = document.querySelector('.nav-dropdown');
+    const toggle = document.querySelector('.nav-dropdown-toggle');
+    if (dropdown && toggle && toggle.classList.contains('active')) {
+        dropdown.classList.add('open');
+    }
 
     // Close dropdown when clicking outside
     document.addEventListener('click', function(e){
         const dropdown = document.querySelector('.nav-dropdown');
         const btn = document.querySelector('.nav-dropdown-toggle');
-        if(!dropdown || !btn) return;
-        if(!dropdown.contains(e.target) && !btn.contains(e.target)){
+        if (!dropdown || !btn) return;
+        if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
             dropdown.classList.remove('open');
         }
     });
 });
 </script>
-
-
