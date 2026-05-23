@@ -310,11 +310,15 @@
                 <div class="form-grid">
                     <div>
                         <label class="form-group-label">Start Date *</label>
-                        <input type="text" name="start_date" id="ctoStartDate" class="form-control" placeholder="mm/dd/yyyy" autocomplete="off" required>
+                        <div class="date-input-with-icon">
+                            <input type="date" name="start_date" id="ctoStartDate" class="form-control" required>
+                        </div>
                     </div>
                     <div>
                         <label class="form-group-label">End Date</label>
-                        <input type="text" name="end_date" id="ctoEndDate" class="form-control" placeholder="mm/dd/yyyy" autocomplete="off">
+                        <div class="date-input-with-icon">
+                            <input type="date" name="end_date" id="ctoEndDate" class="form-control">
+                        </div>
                     </div>
                 </div>
 
