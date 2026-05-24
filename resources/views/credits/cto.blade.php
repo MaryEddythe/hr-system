@@ -250,22 +250,29 @@
     #selectedEmployeeIds {
         display: none;
     }
-    .cto-group-toggle {
-        border: none;
-        background: transparent;
-        color: #0066cc;
-        cursor: pointer;
-        font-weight: 700;
-        padding: 0;
-    }
     .cto-group-title {
         font-weight: 800;
         color: #0f172a;
+        overflow-wrap: anywhere;
     }
     .cto-group-meta {
         color: #64748b;
         font-size: 0.82rem;
         margin-top: 0.2rem;
+    }
+    .cto-group-toggle {
+        border: 1px solid #bfdbfe;
+        background: #eff6ff;
+        border-radius: 999px;
+        color: #1e40af;
+        cursor: pointer;
+        font-size: 0.82rem;
+        font-weight: 800;
+        padding: 0.35rem 0.7rem;
+        white-space: nowrap;
+    }
+    .cto-group-toggle:hover {
+        background: #dbeafe;
     }
     .cto-detail-row {
         display: none;
@@ -274,16 +281,56 @@
     .cto-detail-row.active {
         display: table-row;
     }
+    .cto-detail-row > td {
+        padding: 0.9rem 1rem 1.1rem;
+    }
     .cto-detail-table {
         width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 0.55rem;
+        background: transparent;
+    }
+    .cto-detail-table thead {
+        display: none;
+    }
+    .cto-detail-table tbody,
+    .cto-detail-table tr,
+    .cto-detail-table td {
+        display: block;
+    }
+    .cto-detail-table tbody {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 0.65rem;
+    }
+    .cto-detail-table tr {
         background: #fff;
         border: 1px solid #e2e8f0;
         border-radius: 6px;
-        overflow: hidden;
+        padding: 0.8rem;
     }
-    .cto-detail-table th,
     .cto-detail-table td {
-        font-size: 0.85rem;
+        border: none;
+        padding: 0;
+        color: #64748b;
+        font-size: 0.82rem;
+    }
+    .cto-detail-table td:nth-child(2) {
+        color: #0f172a;
+        font-size: 0.9rem;
+        font-weight: 800;
+        margin: 0.35rem 0 0.2rem;
+    }
+    .cto-detail-table td:nth-child(6) {
+        display: inline-flex;
+        width: fit-content;
+        margin-top: 0.5rem;
+        background: #dbeafe;
+        border: 1px solid #93c5fd;
+        border-radius: 999px;
+        color: #1e40af;
+        font-weight: 800;
+        padding: 0.25rem 0.55rem;
     }
 </style>
 
@@ -402,7 +449,7 @@
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>Status</th>
-                <th>Details</th>
+                <th>Employees</th>
             </tr>
         </thead>
         <tbody>
@@ -436,7 +483,7 @@
                         </span>
                     </td>
                     <td>
-                        <button type="button" class="cto-group-toggle" onclick="toggleCtoGroup('{{ $groupId }}', this)">
+                        <button type="button" class="cto-group-toggle" aria-expanded="false" onclick="toggleCtoGroup('{{ $groupId }}', this)">
                             Show employees
                         </button>
                     </td>
@@ -494,6 +541,7 @@
         const isOpen = row.classList.toggle('active');
         if (button) {
             button.textContent = isOpen ? 'Hide employees' : 'Show employees';
+            button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         }
     }
 
