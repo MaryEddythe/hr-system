@@ -250,6 +250,41 @@
     #selectedEmployeeIds {
         display: none;
     }
+    .cto-group-toggle {
+        border: none;
+        background: transparent;
+        color: #0066cc;
+        cursor: pointer;
+        font-weight: 700;
+        padding: 0;
+    }
+    .cto-group-title {
+        font-weight: 800;
+        color: #0f172a;
+    }
+    .cto-group-meta {
+        color: #64748b;
+        font-size: 0.82rem;
+        margin-top: 0.2rem;
+    }
+    .cto-detail-row {
+        display: none;
+        background: #f8fafc;
+    }
+    .cto-detail-row.active {
+        display: table-row;
+    }
+    .cto-detail-table {
+        width: 100%;
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    .cto-detail-table th,
+    .cto-detail-table td {
+        font-size: 0.85rem;
+    }
 </style>
 
 
@@ -330,8 +365,8 @@
                         <input type="number" name="credit_hours" id="ctoCreditHours" class="form-control" min="0" step="1" placeholder="Enter hours" required />
                     </div>
                     <div>
-                        <label class="form-group-label">Remarks</label>
-                        <input type="text" name="remarks" class="form-control" placeholder="Remarks (optional)">
+                        <label class="form-group-label">Special Order / Basis</label>
+                        <input type="text" name="remarks" class="form-control" placeholder="SO name, business hours, or beyond schedule">
                     </div>
                 </div>
 
@@ -350,48 +385,93 @@
 
 
 <div class="table-wrapper">
+    @php
+        $ctoGroups = $ctoBenefits->groupBy(function ($benefit) {
+            $remarks = trim((string) $benefit->remarks);
+
+            return $remarks !== '' ? $remarks : 'No special order / basis';
+        });
+    @endphp
+
     <table>
         <thead>
             <tr>
-                <th>Employee ID</th>
-                <th>Name</th>
-                <th>Division</th>
-                <th>Position</th>
-                <th>Employment Type</th>
+                <th>Special Order / Basis</th>
+                <th>Employees</th>
+                <th>Total Hours</th>
                 <th>Start Date</th>
                 <th>End Date</th>
-                <th>Leave Type</th>
                 <th>Status</th>
+                <th>Details</th>
             </tr>
         </thead>
         <tbody>
-            @forelse($ctoBenefits as $benefit)
+            @forelse($ctoGroups as $basis => $groupBenefits)
+                @php
+                    $groupId = 'cto-group-' . md5($basis);
+                    $firstBenefit = $groupBenefits->first();
+                    $startDate = $groupBenefits->min('start_date');
+                    $endDate = $groupBenefits->filter(fn ($benefit) => $benefit->end_date)->max('end_date');
+                @endphp
                 <tr>
-                    <td><span class="badge badge-blue">{{ $benefit->employee->employee_id ?? 'N/A' }}</span></td>
-                    <td><div class="leave-type-cell">{{ $benefit->name }}</div></td>
-                    <td>{{ $benefit->division ?? 'N/A' }}</td>
-                    <td>{{ $benefit->position ?? 'N/A' }}</td>
-                    <td>{{ $benefit->employment_type === 'PERMANENT' ? 'Permanent' : 'COS' }}</td>
-                    <td><div class="leave-date">{{ $benefit->start_date->format('M d, Y') }}</div></td>
+                    <td>
+                        <div class="cto-group-title">{{ $basis }}</div>
+                        <div class="cto-group-meta">{{ $firstBenefit->credit_type ?? 'Credited Time-Off' }}</div>
+                    </td>
+                    <td>{{ $groupBenefits->count() }}</td>
+                    <td>{{ (int) $groupBenefits->sum('credit_hours') }}</td>
+                    <td><div class="leave-date">{{ $startDate?->format('M d, Y') }}</div></td>
                     <td>
                         <div class="leave-date">
-                            @if($benefit->end_date)
-                                {{ $benefit->end_date->format('M d, Y') }}
+                            @if($endDate)
+                                {{ $endDate->format('M d, Y') }}
                             @else
                                 <span style="color: #94a3b8;">—</span>
                             @endif
                         </div>
                     </td>
-                    <td><div class="leave-type-cell">{{ $benefit->credit_type }}</div></td>
                     <td>
-                        <span class="status-badge status-{{ strtolower($benefit->status) }}">
-                            {{ $benefit->status }}
+                        <span class="status-badge status-{{ strtolower($firstBenefit->status ?? 'ACTIVE') }}">
+                            {{ $firstBenefit->status ?? 'ACTIVE' }}
                         </span>
+                    </td>
+                    <td>
+                        <button type="button" class="cto-group-toggle" onclick="toggleCtoGroup('{{ $groupId }}', this)">
+                            Show employees
+                        </button>
+                    </td>
+                </tr>
+                <tr id="{{ $groupId }}" class="cto-detail-row">
+                    <td colspan="7">
+                        <table class="cto-detail-table">
+                            <thead>
+                                <tr>
+                                    <th>Employee ID</th>
+                                    <th>Name</th>
+                                    <th>Division</th>
+                                    <th>Position</th>
+                                    <th>Employment Type</th>
+                                    <th>Hours</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($groupBenefits as $benefit)
+                                    <tr>
+                                        <td><span class="badge badge-blue">{{ $benefit->employee->employee_id ?? 'N/A' }}</span></td>
+                                        <td><div class="leave-type-cell">{{ $benefit->name }}</div></td>
+                                        <td>{{ $benefit->division ?? 'N/A' }}</td>
+                                        <td>{{ $benefit->position ?? 'N/A' }}</td>
+                                        <td>{{ $benefit->employment_type === 'PERMANENT' ? 'Permanent' : 'COS' }}</td>
+                                        <td>{{ (int) $benefit->credit_hours }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="9">
+                    <td colspan="7">
                         <div class="empty-state">
                             <div class="empty-state-icon">–</div>
                             <div class="empty-state-text">No CTO credits found</div>
@@ -406,6 +486,16 @@
 <script>
     let selectedEmployees = [];
     let lastSearchItems = [];
+
+    function toggleCtoGroup(groupId, button) {
+        const row = document.getElementById(groupId);
+        if (!row) return;
+
+        const isOpen = row.classList.toggle('active');
+        if (button) {
+            button.textContent = isOpen ? 'Hide employees' : 'Show employees';
+        }
+    }
 
     function openCreateCtoModal(){
         const el = document.getElementById('createCtoModal');
