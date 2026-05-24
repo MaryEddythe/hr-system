@@ -260,18 +260,6 @@
 
 
     <div class="card">
-    <div class="card-title">CTO Summary</div>
-
-        <div class="info-row">
-            <span class="info-label">Credited Time-Off (Total Hours)</span>
-            <span class="info-value">
-                {{ $ctoTotalHours }} hours
-            </span>
-        </div>
-
-    </div>
-
-    <div class="card">
     <div class="card-title">Leave Benefits</div>
 
 
@@ -356,4 +344,3 @@
 </div>
 
 @endsection
-
