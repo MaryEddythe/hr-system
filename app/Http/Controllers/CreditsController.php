@@ -17,6 +17,15 @@ class CreditsController extends Controller
     public function index(): View
     {
         $allBenefits = EmployeeLeaveBenefit::with('employee')
+            ->where(function ($query) {
+                $query->whereNull('credit_type')
+                    ->orWhere(function ($query) {
+                        $query->whereRaw('LOWER(TRIM(credit_type)) NOT IN (?, ?)', [
+                            'credited time-off',
+                            'credited time off',
+                        ])->whereRaw('LOWER(credit_type) NOT LIKE ?', ['%cto%']);
+                    });
+            })
             ->orderBy('start_date', 'desc')
             ->get();
 
@@ -49,7 +58,9 @@ class CreditsController extends Controller
 
         $ctoBenefits = $allBenefits->filter(function ($benefit) {
             $type = strtolower(trim((string) $benefit->credit_type));
-            return $type === 'credited time-off' || str_contains($type, 'cto') || $type === 'credited time off';
+            $isCto = $type === 'credited time-off' || str_contains($type, 'cto') || $type === 'credited time off';
+
+            return $isCto && (int) $benefit->credit_hours > 0;
         })->values();
 
         // Keep same leave-type arrays so the CTO page can reuse future UI if needed
@@ -210,6 +221,7 @@ class CreditsController extends Controller
             'date_effective' => 'required|date',
             'credit_hours' => 'nullable|integer|min:0',
             'remarks' => 'nullable|string',
+            'cto_action' => 'nullable|in:add,deduct',
         ]);
 
         $employeeIds = $this->extractEmployeeIds($validated);
@@ -257,17 +269,33 @@ class CreditsController extends Controller
 
         $creditHoursInput = isset($validated['credit_hours']) ? (int) $validated['credit_hours'] : null;
         $isCto = $creditType === 'Credited Time-Off';
+        $ctoAction = $isCto ? ($validated['cto_action'] ?? 'deduct') : null;
 
 
         if ($isCto) {
             $creditHours = $creditHoursInput ?? 0;
+            if ($ctoAction === 'deduct') {
+                $creditHours = -abs($creditHours);
+            }
         } else {
             $creditHours = $isDayBased ? ($dayCount * 10) : 0;
         }
 
-        DB::transaction(function () use ($employeeIds, $employees, $validated, $creditType, $creditHours, $isCto) {
+        DB::transaction(function () use ($employeeIds, $employees, $validated, $creditType, $creditHours, $isCto, $ctoAction) {
             foreach ($employeeIds as $employeeId) {
                 $employee = $employees->get($employeeId);
+                $currentCtoHours = 0;
+
+                if ($isCto) {
+                    $currentCtoHours = (int) EmployeeLeaveBenefit::where('employee_id', $employee->id)
+                        ->where(function ($query) {
+                            $query->whereRaw('LOWER(TRIM(credit_type)) IN (?, ?)', [
+                                'credited time-off',
+                                'credited time off',
+                            ])->orWhereRaw('LOWER(credit_type) LIKE ?', ['%cto%']);
+                        })
+                        ->sum('credit_hours');
+                }
 
                 $creditData = [
                     'employee_id' => $employee->id,
@@ -279,7 +307,8 @@ class CreditsController extends Controller
                     'start_date' => $validated['start_date'],
                     'end_date' => $validated['end_date'] ?? null,
                     'credit_hours' => $creditHours,
-                    'hours_used' => 0,
+                    'hours_used' => $isCto && $ctoAction === 'deduct' ? abs($creditHours) : 0,
+                    'hours_remaining' => $isCto ? ($currentCtoHours + $creditHours) : null,
                     'status' => 'ACTIVE',
                     'remarks' => $validated['remarks'] ?? null,
                 ];
@@ -291,17 +320,21 @@ class CreditsController extends Controller
                         'employee_id' => $employee->id,
                         'leave_benefit_id' => $benefit->id,
                         'credit_type' => $creditType,
-                        'credits_added' => $creditHours,
-                        'hours_used' => 0,
-                        'hours_remaining' => $creditHours,
+                        'credits_added' => $ctoAction === 'add' ? $creditHours : 0,
+                        'hours_used' => $ctoAction === 'deduct' ? abs($creditHours) : 0,
+                        'hours_remaining' => $currentCtoHours + $creditHours,
                         'remarks' => $validated['remarks'] ?? null,
                     ]);
                 }
             }
         });
 
-        $route = $isCto ? 'credits.cto' : 'credits.index';
-        $message = $isCto ? 'CTO entry created successfully' : 'Leave credit created successfully';
+        $route = $isCto && $ctoAction === 'add' ? 'credits.cto' : 'credits.index';
+        $message = match (true) {
+            $isCto && $ctoAction === 'add' => 'CTO entry created successfully',
+            $isCto => 'CTO hours deducted successfully',
+            default => 'Leave credit created successfully',
+        };
 
         return redirect()->route($route)->with('success', $message);
     }

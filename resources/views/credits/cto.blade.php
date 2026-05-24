@@ -306,6 +306,7 @@
 </div>
 
                 <input type="hidden" name="credit_type" value="Credited Time-Off" />
+                <input type="hidden" name="cto_action" value="add" />
 
                 <div class="form-grid">
                     <div>
@@ -606,4 +607,3 @@
 
 
 @endsection
-
