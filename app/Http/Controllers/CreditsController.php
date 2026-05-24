@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Models\EmployeeLeaveBenefit;
+use App\Models\EmployeeLeaveHistory;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class CreditsController extends Controller
@@ -198,16 +201,35 @@ class CreditsController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
+            'employee_id' => 'nullable|exists:employees,id',
+            'employee_ids' => 'nullable',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'credit_type' => 'required|string',
             'date_applied' => 'required|date',
             'date_effective' => 'required|date',
             'credit_hours' => 'nullable|integer|min:0',
+            'remarks' => 'nullable|string',
         ]);
 
-        $employee = Employee::find($validated['employee_id']);
+        $employeeIds = $this->extractEmployeeIds($validated);
+
+        if (empty($employeeIds)) {
+            throw ValidationException::withMessages([
+                'employee_id' => 'Please select at least one employee.',
+            ]);
+        }
+
+        $employees = Employee::with('division')
+            ->whereIn('id', $employeeIds)
+            ->get()
+            ->keyBy('id');
+
+        if ($employees->count() !== count($employeeIds)) {
+            throw ValidationException::withMessages([
+                'employee_id' => 'One or more selected employees could not be found.',
+            ]);
+        }
 
         $creditType = (string) $validated['credit_type'];
         $typeLower = strtolower(trim($creditType));
@@ -243,21 +265,68 @@ class CreditsController extends Controller
             $creditHours = $isDayBased ? ($dayCount * 10) : 0;
         }
 
-        EmployeeLeaveBenefit::create([
-            'employee_id' => $employee->id,
-            'name' => $employee->full_name,
-            'division' => optional($employee->division)->code ?? 'N/A',
-            'position' => $employee->position,
-            'employment_type' => $employee->employment_type,
-            'credit_type' => $creditType,
-            'start_date' => $validated['start_date'],
-            'end_date' => $validated['end_date'],
-            'credit_hours' => $creditHours,
-            'hours_used' => 0,
-            'status' => 'ACTIVE',
-        ]);
+        DB::transaction(function () use ($employeeIds, $employees, $validated, $creditType, $creditHours, $isCto) {
+            foreach ($employeeIds as $employeeId) {
+                $employee = $employees->get($employeeId);
 
-        return redirect()->route('credits.index')->with('success', 'Leave credit created successfully');
+                $creditData = [
+                    'employee_id' => $employee->id,
+                    'name' => $employee->full_name,
+                    'division' => optional($employee->division)->code ?? 'N/A',
+                    'position' => $employee->position,
+                    'employment_type' => $employee->employment_type,
+                    'credit_type' => $creditType,
+                    'start_date' => $validated['start_date'],
+                    'end_date' => $validated['end_date'] ?? null,
+                    'credit_hours' => $creditHours,
+                    'hours_used' => 0,
+                    'status' => 'ACTIVE',
+                    'remarks' => $validated['remarks'] ?? null,
+                ];
+
+                $benefit = EmployeeLeaveBenefit::create($creditData);
+
+                if ($isCto) {
+                    EmployeeLeaveHistory::create([
+                        'employee_id' => $employee->id,
+                        'leave_benefit_id' => $benefit->id,
+                        'credit_type' => $creditType,
+                        'credits_added' => $creditHours,
+                        'hours_used' => 0,
+                        'hours_remaining' => $creditHours,
+                        'remarks' => $validated['remarks'] ?? null,
+                    ]);
+                }
+            }
+        });
+
+        $route = $isCto ? 'credits.cto' : 'credits.index';
+        $message = $isCto ? 'CTO entry created successfully' : 'Leave credit created successfully';
+
+        return redirect()->route($route)->with('success', $message);
+    }
+
+    private function extractEmployeeIds(array $validated): array
+    {
+        $employeeIds = [];
+
+        if (!empty($validated['employee_ids'])) {
+            $rawEmployeeIds = $validated['employee_ids'];
+
+            if (is_string($rawEmployeeIds)) {
+                $decoded = json_decode($rawEmployeeIds, true);
+                $rawEmployeeIds = json_last_error() === JSON_ERROR_NONE ? $decoded : [];
+            }
+
+            if (is_array($rawEmployeeIds)) {
+                $employeeIds = $rawEmployeeIds;
+            }
+        }
+
+        if (empty($employeeIds) && !empty($validated['employee_id'])) {
+            $employeeIds = [$validated['employee_id']];
+        }
+
+        return array_values(array_unique(array_map('intval', $employeeIds)));
     }
 }
-

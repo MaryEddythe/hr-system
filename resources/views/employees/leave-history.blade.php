@@ -76,21 +76,24 @@ lview fu@extends('layouts.app')
         </thead>
         <tbody>
         @forelse($benefits as $benefit)
+            @php($leaveBenefit = $benefit->leaveBenefit)
             <tr>
-                <td><span class="badge badge-blue">{{ $benefit->employee_id }}</span></td>
-                <td>{{ $benefit->name }}</td>
-                <td>{{ $benefit->division }}</td>
-                <td>{{ $benefit->position }}</td>
-                <td>{{ $benefit->start_date?->format('M d, Y') }}</td>
+                <td><span class="badge badge-blue">{{ $employee->employee_id }}</span></td>
+                <td>{{ $leaveBenefit->name ?? $employee->full_name }}</td>
+                <td>{{ $leaveBenefit->division ?? optional($employee->division)->code ?? 'N/A' }}</td>
+                <td>{{ $leaveBenefit->position ?? $employee->position }}</td>
+                <td>{{ $leaveBenefit?->start_date?->format('M d, Y') }}</td>
                 <td>
-                    @if($benefit->end_date)
-                        {{ $benefit->end_date->format('M d, Y') }}
+                    @if($leaveBenefit?->end_date)
+                        {{ $leaveBenefit->end_date->format('M d, Y') }}
                     @else
                         —
                     @endif
                 </td>
 
-                        <td>{{ $benefit->credit_hours }}</td>
+                        <td>{{ $benefit->credit_type }}</td>
+
+                        <td>{{ $benefit->credits_added }}</td>
 
                         <td>{{ $benefit->remarks ?? '—' }}</td>
 
@@ -109,4 +112,3 @@ lview fu@extends('layouts.app')
     </table>
 </div>
 @endsection
-

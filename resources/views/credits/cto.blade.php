@@ -429,11 +429,24 @@
 
     function handleSubmit(event){
         const hiddenField = document.getElementById('selectedEmployeeIds');
+        const startDate = document.getElementById('ctoStartDate')?.value;
+        const dateApplied = document.getElementById('ctoDateApplied');
+        const dateEffective = document.getElementById('ctoDateEffective');
+
         if (selectedEmployees.length === 0) {
             event.preventDefault();
             alert('Please select at least one employee.');
             return false;
         }
+
+        if (dateApplied && !dateApplied.value) {
+            dateApplied.value = new Date().toISOString().slice(0, 10);
+        }
+
+        if (dateEffective && !dateEffective.value) {
+            dateEffective.value = startDate || new Date().toISOString().slice(0, 10);
+        }
+
         hiddenField.value = JSON.stringify(selectedEmployees.map(e => e.id));
     }
 
@@ -593,5 +606,4 @@
 
 
 @endsection
-
 

@@ -93,11 +93,14 @@ class EmployeeController extends Controller
 
     public function leaveHistory(Employee $employee)
     {
-        $employee->load(['division', 'leaveBenefits']);
+        $employee->load(['division', 'leaveHistory.leaveBenefit']);
 
         return view('employees.leave-history', [
             'employee' => $employee,
-            'benefits' => $employee->leaveBenefits()->orderBy('start_date', 'desc')->get(),
+            'benefits' => $employee->leaveHistory()
+                ->with('leaveBenefit')
+                ->latest()
+                ->get(),
         ]);
     }
 

@@ -60,4 +60,9 @@ class Employee extends Model
         return $this->hasMany(EmployeeLeaveBenefit::class);
     }
 
+    public function leaveHistory()
+    {
+        return $this->hasMany(EmployeeLeaveHistory::class);
+    }
+
 }
