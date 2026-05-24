@@ -56,7 +56,7 @@ class EmployeeController extends Controller
 
     public function show(Employee $employee)
     {
-        $employee->load('division');
+        $employee->load(['division', 'leaveBenefits']);
 
         return view('employees.show', compact('employee'));
     }

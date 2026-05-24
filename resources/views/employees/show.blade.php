@@ -239,21 +239,25 @@
 
     // Convert stored credit_hours back to credited days (1 day = 10 hours).
     // Then compute remaining days for annual day-based leaves.
-    $benefitsByType = $employee->leaveBenefits()->get()->groupBy('credit_type');
+    $benefits = $employee->leaveBenefits()
+        ->orderBy('start_date', 'desc')
+        ->get();
+
+    $benefitsByType = $benefits->groupBy('credit_type');
+
+    $ctoCredits = $benefits->filter(function ($benefit) {
+        $type = strtolower(trim((string) $benefit->credit_type));
+
+        return $type === 'credited time-off'
+            || $type === 'credited time off'
+            || str_contains($type, 'cto');
+    });
+
+    $ctoTotalHours = (int) $ctoCredits->sum('credit_hours');
 
     $dayBasedCreditFactor = 10; // 1 day = 10 hours
 @endphp
 
-
-    @php
-        // CTO totals (stored in employee_leave_benefits as credit_type containing 'Credited Time-Off' / 'CTO')
-        $ctoCredits = $employee->leaveBenefits()
-            ->whereRaw('LOWER(credit_type) = ?', ['credited time-off'])
-            ->orWhereRaw('LOWER(credit_type) LIKE ?', ['%cto%'])
-            ->get();
-
-        $ctoTotalHours = (int) $ctoCredits->sum('credit_hours');
-    @endphp
 
     <div class="card">
     <div class="card-title">CTO Summary</div>
@@ -275,6 +279,7 @@
         @php
             $label = $row[0];
             $annualDays = $row[1];
+            $isCtoBenefit = in_array(strtolower($label), ['credited time-off', 'credited time off'], true);
 
             // For annual day-based credits, compute remaining = annual - usedDays
             $usedDays = 0;
@@ -297,6 +302,8 @@
             <span class="info-value">
                 @if(is_int($remainingDays))
                     {{ $remainingDays }} days annually
+                @elseif($isCtoBenefit)
+                    {{ $ctoTotalHours }} hours
                 @else
                     {{ $remainingDays ?? 'As per policy' }}
                 @endif
@@ -309,10 +316,6 @@
         <div style="display:flex; align-items:center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
             <div style="font-weight: 700; color: #0f172a;">Leave History</div>
         </div>
-
-        @php
-            $benefits = $employee->leaveBenefits()->orderBy('start_date', 'desc')->get();
-        @endphp
 
         <div class="table-wrapper" style="margin-top: 0.75rem;">
 
@@ -353,5 +356,4 @@
 </div>
 
 @endsection
-
 
