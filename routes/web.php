@@ -7,6 +7,9 @@ use App\Http\Controllers\CreditsController;
 
 Route::get('/', fn() => redirect()->route('employees.index'));
 
+Route::get('calendar', fn() => view('calendar.index'))
+    ->name('calendar.index');
+
 use App\Http\Controllers\EmployeeController;
 
 Route::resource('employees', EmployeeController::class)
