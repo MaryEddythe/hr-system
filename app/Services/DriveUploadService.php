@@ -20,16 +20,27 @@ class DriveUploadService
         $client->setClientSecret(config('google.client_secret'));
         $client->addScope(Drive::DRIVE);
         $client->setAccessType('offline');
-        
-        // Set the refresh token and let it auto-refresh
-        $token = ['refresh_token' => config('google.refresh_token')];
-        $client->setAccessToken($token);
-        
-        // If the token is expired, this will refresh it
-        if ($client->isAccessTokenExpired()) {
-            $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+
+        $refreshToken = config('google.refresh_token');
+
+        if (!$refreshToken) {
+            throw new \RuntimeException('Missing GOOGLE_REFRESH_TOKEN.');
         }
-        
+
+        $accessToken = $client->fetchAccessTokenWithRefreshToken($refreshToken);
+
+        if (isset($accessToken['error'])) {
+            $message = $accessToken['error_description'] ?? $accessToken['error'];
+
+            if ($accessToken['error'] === 'invalid_grant') {
+                $message .= ' The Google refresh token is invalid, expired, revoked, or belongs to a different OAuth client.';
+            }
+
+            throw new \RuntimeException(
+                'Google token refresh failed: ' . $message
+            );
+        }
+
         $this->service = new Drive($client);
     }
 

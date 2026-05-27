@@ -21,14 +21,23 @@ class AppServiceProvider extends ServiceProvider
             $client->setClientSecret($config['clientSecret']);
             $client->addScope(Drive::DRIVE);
             $client->setAccessType('offline');
-            
-            // Set the refresh token and let it auto-refresh
-            $token = ['refresh_token' => $config['refreshToken']];
-            $client->setAccessToken($token);
-            
-            // If the token is expired, this will refresh it
-            if ($client->isAccessTokenExpired()) {
-                $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+
+            if (empty($config['refreshToken'])) {
+                throw new \RuntimeException('Missing GOOGLE_REFRESH_TOKEN.');
+            }
+
+            $accessToken = $client->fetchAccessTokenWithRefreshToken($config['refreshToken']);
+
+            if (isset($accessToken['error'])) {
+                $message = $accessToken['error_description'] ?? $accessToken['error'];
+
+                if ($accessToken['error'] === 'invalid_grant') {
+                    $message .= ' The Google refresh token is invalid, expired, revoked, or belongs to a different OAuth client.';
+                }
+
+                throw new \RuntimeException(
+                    'Google token refresh failed: ' . $message
+                );
             }
 
             $service = new Drive($client);
