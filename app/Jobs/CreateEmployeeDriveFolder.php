@@ -22,6 +22,12 @@ class CreateEmployeeDriveFolder implements ShouldQueue
     public function handle(): void
     {
         try {
+            // guard: skip if folder already exists
+            if ($this->employee->drive_folder_id) {
+                Log::info("Drive folder already exists for employee_id={$this->employee->employee_id}, skipping creation.");
+                return;
+            }
+
             $client = $this->getGoogleClient();
             $service = new Drive($client);
 
@@ -38,17 +44,25 @@ class CreateEmployeeDriveFolder implements ShouldQueue
                 'fields' => 'id, webViewLink',
             ]);
 
-            // Make folder viewable by anyone with the link
+            // get id and link reliably
+            $folderId   = method_exists($folder, 'getId') ? $folder->getId() : ($folder->id ?? null);
+            $folderLink = method_exists($folder, 'getWebViewLink') ? $folder->getWebViewLink() : ($folder->webViewLink ?? null);
+
+            if (!$folderId) {
+                throw new \RuntimeException('Failed to retrieve created folder id from Drive response.');
+            }
+
+            // Make folder viewable by anyone with the link (no email notifications)
             $permission = new Drive\Permission([
                 'type' => 'anyone',
                 'role' => 'reader',
             ]);
-            $service->permissions->create($folder->id, $permission);
+            $service->permissions->create($folderId, $permission, ['sendNotificationEmail' => false]);
 
             // Save folder info back to employee record
             $this->employee->update([
-                'drive_folder_id'  => $folder->id,
-                'drive_folder_url' => $folder->webViewLink,
+                'drive_folder_id'  => $folderId,
+                'drive_folder_url' => $folderLink,
             ]);
 
             Log::info("Drive folder created for {$this->employee->full_name}");
@@ -73,12 +87,15 @@ class CreateEmployeeDriveFolder implements ShouldQueue
             throw new \RuntimeException('Missing GOOGLE_REFRESH_TOKEN.');
         }
 
-        $accessToken = $client->fetchAccessTokenWithRefreshToken($refreshToken);
+        // fetchAccessTokenWithRefreshToken() internally calls setAccessToken() on success,
+        // so the client is already authenticated after this call.
+        // We only need to check for errors — do NOT call setAccessToken() again.
+        $accessTokenResponse = $client->fetchAccessTokenWithRefreshToken($refreshToken);
 
-        if (isset($accessToken['error'])) {
-            $message = $accessToken['error_description'] ?? $accessToken['error'];
+        if (isset($accessTokenResponse['error'])) {
+            $message = $accessTokenResponse['error_description'] ?? $accessTokenResponse['error'];
 
-            if ($accessToken['error'] === 'invalid_grant') {
+            if ($accessTokenResponse['error'] === 'invalid_grant') {
                 $message .= ' The Google refresh token is invalid, expired, revoked, or belongs to a different OAuth client.';
             }
 
@@ -86,6 +103,12 @@ class CreateEmployeeDriveFolder implements ShouldQueue
                 'Google token refresh failed: ' . $message
             );
         }
+
+        if (empty($accessTokenResponse['access_token'])) {
+            throw new \RuntimeException('Failed to obtain access_token from Google API response.');
+        }
+
+        // Client is already authenticated — no setAccessToken() call needed.
 
         return $client;
     }

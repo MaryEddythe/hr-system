@@ -89,7 +89,7 @@
         </div>
 
         <div class="modal-body">
-            <form method="POST" action="{{ route('employees.store') }}">
+            <form method="POST" action="{{ route('employees.store') }}" id="employeeForm">
                 @csrf
 
                 <div class="form-grid">
@@ -154,15 +154,29 @@
                 </div>
 
                 <div class="modal-actions">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
                         Save Employee & Create Drive Folder
                     </button>
                     <a href="{{ route('employees.index') }}" class="btn btn-outline">Cancel</a>
+                </div>
+
+                <!-- small async notice -->
+                <div style="margin-top:0.75rem;color:#64748b;font-size:0.9rem;">
+                    Note: A Drive folder will be created automatically in the background. It may take a few seconds to appear.
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<!-- simple disable-on-submit to prevent double posts -->
+<script>
+(function(){
+    const form = document.getElementById('employeeForm');
+    const submitBtn = document.getElementById('submitBtn');
+    form.addEventListener('submit', function(){ submitBtn.disabled = true; });
+})();
+</script>
 
 <style>
     .required-asterisk {

@@ -82,6 +82,15 @@
     <a href="{{ route('employees.create') }}" class="btn btn-primary">+ Add Employee</a>
 </div>
 
+<!-- show immediate feedback about recent actions -->
+@if(session('status') || session('error') || $errors->any())
+    <div style="margin:0.75rem 0;padding:0.75rem;border-radius:6px;background:#fff3f3;border:1px solid #ffd6d6;color:#922">
+        @if(session('status')) {{ session('status') }} @endif
+        @if(session('error')) {{ session('error') }} @endif
+        @if($errors->any()) {{ $errors->first() }} @endif
+    </div>
+@endif
+
 <div class="table-wrapper">
     <table>
         <thead>
@@ -91,6 +100,7 @@
                 <th>Division</th>
                 <th>Position</th>
                 <th>Employment Type</th>
+                <th>Folder</th> <!-- added -->
                 <th>Actions</th>
             </tr>
         </thead>
@@ -107,6 +117,16 @@
                 <td>{{ optional($emp->division)->code ?? 'N/A' }}</td>
                 <td>{{ $emp->position }}</td>
                 <td>{{ $emp->employment_type === 'PERMANENT' ? 'Permanent' : 'COS' }}</td>
+
+                <!-- new folder cell -->
+                <td>
+                    @if($emp->drive_folder_url)
+                        <a href="{{ $emp->drive_folder_url }}" target="_blank" rel="noopener">Open Folder</a>
+                    @else
+                        <span class="text-muted">Pending</span>
+                    @endif
+                </td>
+
                 <td>
                     <div class="actions-cell">
                         <a href="{{ route('employees.show', $emp) }}" class="btn btn-outline btn-sm">View</a>

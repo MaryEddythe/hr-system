@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\CreateEmployeeDriveFolder;
 use App\Models\Employee;
-use App\Models\EmployeeFile;
-use App\Services\DriveUploadService;
+use App\Models\Division;
 use Illuminate\Http\Request;
 
 class EmployeeController extends Controller
@@ -27,31 +27,28 @@ class EmployeeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'first_name'      => 'required|string|max:100',
-            'last_name'       => 'required|string|max:100',
-            'email'           => 'required|email|unique:employees,email',
-            'division_id'     => 'required|exists:divisions,id',   // ← changed
-            'position'        => 'required|string|max:100',
-            'employment_type' => 'required|in:COS,PERMANENT',
+            'first_name'      => 'required|string|max:255',
+            'last_name'       => 'required|string|max:255',
+            'email'           => 'required|email|unique:employees',
+            'division_id'     => 'required|exists:divisions,id',
+            'position'        => 'required|string|max:255',
+            'employment_type' => 'required|in:PERMANENT,COS',
             'hired_at'        => 'required|date',
         ]);
 
-         $validated['employee_id'] = Employee::generateEmployeeId();
+        // Generate unique employee_id server-side
+        $lastEmployee = Employee::orderByDesc('id')->first();
+        $nextNumber = ($lastEmployee ? (int)substr($lastEmployee->employee_id, 4) : 0) + 1;
+        $validated['employee_id'] = 'EMP-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
-    $employee = Employee::create($validated);
+        // Create employee
+        $employee = Employee::create($validated);
 
-    try {
-        \App\Jobs\CreateEmployeeDriveFolder::dispatchSync($employee);
-    } catch (\Exception $e) {
-        \Log::error('Drive folder failed: ' . $e->getMessage());
-        return redirect()
-            ->route('employees.show', $employee)
-            ->with('warning', "Employee saved, but Drive folder creation failed: " . $e->getMessage());
-    }
+        // Dispatch job to create Drive folder
+        CreateEmployeeDriveFolder::dispatch($employee);
 
-    return redirect()
-        ->route('employees.show', $employee)
-        ->with('success', "Employee {$employee->full_name} added and Drive folder created!");
+        return redirect()->route('employees.show', $employee)
+            ->with('status', 'Employee created successfully. Drive folder is being created...');
     }
 
     public function show(Employee $employee)
