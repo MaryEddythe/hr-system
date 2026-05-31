@@ -19,4 +19,9 @@ class Event extends Model
         'start_date' => 'date',
         'end_date' => 'date',
     ];
+
+    public static function getTypes()
+    {
+        return ['Travel Order', 'Event', 'Birthday'];
+    }
 }

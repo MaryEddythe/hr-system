@@ -254,7 +254,8 @@
         font-size: 0.9rem;
     }
     .modal-form-group input,
-    .modal-form-group textarea {
+    .modal-form-group textarea,
+    .modal-form-group select {
         width: 100%;
         padding: 0.75rem;
         border: 1px solid #cbd5e1;
@@ -262,9 +263,11 @@
         font-family: inherit;
         font-size: 0.9rem;
         color: #111827;
+        background: white;
     }
     .modal-form-group input:focus,
-    .modal-form-group textarea:focus {
+    .modal-form-group textarea:focus,
+    .modal-form-group select:focus {
         outline: none;
         border-color: #0066cc;
         box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
@@ -332,22 +335,7 @@
         <div id="calendar"></div>
     </div>
 
-    <aside class="calendar-sidebar">
-        <!-- Calendar Types Section -->
-        <div class="sidebar-section">
-            <div class="section-title">
-                <span>Calendar Types</span>
-            </div>
-            <div class="section-content open">
-                <div class="legend-list">
-                    <div class="legend-item"><span class="legend-dot" style="background:#2563eb"></span>Travel Orders</div>
-                    <div class="legend-item"><span class="legend-dot" style="background:#16a34a"></span>Events</div>
-                    <div class="legend-item"><span class="legend-dot" style="background:#db2777"></span>Birthdays</div>
-                    <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>Tasks</div>
-                </div>
-            </div>
-        </div>
-    </aside>
+    {{--  --}}
 </div>
 
 <!-- Add Event Modal -->
@@ -363,6 +351,12 @@
                 <div class="modal-form-group">
                     <label for="modalEventTitle">Title</label>
                     <input type="text" id="modalEventTitle" name="title" required placeholder="Event title">
+                </div>
+                <div class="modal-form-group">
+                    <label for="modalEventType">Event Type</label>
+                    <select id="modalEventType" name="type" required>
+                        <option value="">Select event type...</option>
+                    </select>
                 </div>
                 <div class="modal-form-group">
                     <label for="modalEventStartDate">Start Date</label>
@@ -397,8 +391,7 @@
     const typeColors = {
         'Travel Order': '#2563eb',
         'Event': '#16a34a',
-        'Birthday': '#db2777',
-        'Task': '#f59e0b'
+        'Birthday': '#db2777'
     };
 
     // Open event modal
@@ -418,6 +411,30 @@
         if (event.target == modal) {
             closeEventModal();
         }
+    }
+
+    // Fetch event types from database
+    async function fetchEventTypes() {
+        try {
+            const response = await fetch('/api/events/types');
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching event types:', error);
+            return ['Travel Order', 'Event', 'Birthday'];
+        }
+    }
+
+    // Populate event type dropdown
+    async function populateEventTypeDropdown() {
+        const select = document.getElementById('modalEventType');
+        const types = await fetchEventTypes();
+        
+        types.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            select.appendChild(option);
+        });
     }
 
     // Fetch events from database
@@ -445,43 +462,17 @@
 
     // Initialize calendar
     document.addEventListener('DOMContentLoaded', async function () {
+        // Populate event type dropdown
+        await populateEventTypeDropdown();
+
         const today = new Date();
         const year = today.getFullYear();
         const month = today.getMonth();
         const pad = (value) => String(value).padStart(2, '0');
         const dateFor = (day) => `${year}-${pad(month + 1)}-${pad(day)}`;
 
-        const sampleEvents = [
-            {
-                title: 'Travel Order: Field Visit',
-                start: dateFor(4),
-                end: dateFor(6),
-                color: '#2563eb',
-                extendedProps: { type: 'Travel Order' }
-            },
-            {
-                title: 'Monthly HR Meeting',
-                start: dateFor(10),
-                color: '#16a34a',
-                extendedProps: { type: 'Event' }
-            },
-            {
-                title: 'Birthday: Sample Employee',
-                start: dateFor(15),
-                color: '#db2777',
-                extendedProps: { type: 'Birthday' }
-            },
-            {
-                title: 'Submit Payroll Documents',
-                start: dateFor(21),
-                color: '#f59e0b',
-                extendedProps: { type: 'Task' }
-            }
-        ];
-
         // Fetch custom events from database
         const customEvents = await fetchEvents();
-        const allEvents = [...sampleEvents, ...customEvents];
 
         const calendarEl = document.getElementById('calendar');
         calendar = new FullCalendar.Calendar(calendarEl, {
@@ -495,7 +486,7 @@
                 center: 'title',
                 right: 'dayGridMonth,listMonth'
             },
-            events: allEvents
+            events: customEvents
         });
 
         calendar.render();
@@ -511,7 +502,7 @@
             end_date: document.getElementById('modalEventEndDate').value,
             description: document.getElementById('modalEventDescription').value,
             remarks: document.getElementById('modalEventRemarks').value,
-            type: 'Event',
+            type: document.getElementById('modalEventType').value,
             _token: document.querySelector('input[name="_token"]').value
         };
 

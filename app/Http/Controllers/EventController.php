@@ -12,6 +12,11 @@ class EventController extends Controller
         return Event::all();
     }
 
+    public function getTypes()
+    {
+        return response()->json(Event::getTypes());
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -20,7 +25,7 @@ class EventController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
             'description' => 'nullable|string',
             'remarks' => 'nullable|string',
-            'type' => 'nullable|in:Travel Order,Event,Birthday,Task',
+            'type' => 'required|in:Travel Order,Event,Birthday',
         ]);
 
         $event = Event::create($validated);
@@ -40,7 +45,7 @@ class EventController extends Controller
             'end_date' => 'sometimes|required|date|after_or_equal:start_date',
             'description' => 'nullable|string',
             'remarks' => 'nullable|string',
-            'type' => 'nullable|in:Travel Order,Event,Birthday,Task',
+            'type' => 'sometimes|required|in:Travel Order,Event,Birthday',
         ]);
 
         $event->update($validated);
