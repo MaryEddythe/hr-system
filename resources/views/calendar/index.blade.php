@@ -8,10 +8,12 @@
         display: flex;
         flex-direction: column;
         gap: 0.25rem;
+        flex: 1;
+        min-width: 300px;
     }
     .calendar-shell {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 320px;
+        grid-template-columns: minmax(0, 1fr) 280px;
         gap: 1.5rem;
         align-items: start;
     }
@@ -22,12 +24,12 @@
         border-radius: 8px;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     }
-    .calendar-panel {
-        padding: 1.25rem;
-        min-width: 0;
-    }
+    .calendar-panel,
     .calendar-sidebar {
         padding: 1.25rem;
+    }
+    .calendar-panel {
+        min-width: 0;
     }
     .sidebar-section {
         margin-bottom: 1.5rem;
@@ -44,22 +46,6 @@
         padding-bottom: 0.85rem;
         margin-bottom: 1rem;
         border-bottom: 1px solid #e2e8f0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        cursor: pointer;
-        user-select: none;
-    }
-    .section-title:hover {
-        color: #334155;
-    }
-    .section-toggle {
-        font-size: 1.2rem;
-        color: #64748b;
-        transition: transform 0.2s;
-    }
-    .section-toggle.open {
-        transform: rotate(180deg);
     }
     .legend-list {
         display: flex;
@@ -80,12 +66,6 @@
         border-radius: 50%;
         flex: 0 0 auto;
         margin-top: 0.3rem;
-    }
-    .section-content {
-        display: none;
-    }
-    .section-content.open {
-        display: block;
     }
     #calendar {
         min-height: 700px;
@@ -135,21 +115,13 @@
         padding: 2px 5px;
         font-size: 0.78rem;
         font-weight: 700;
+        cursor: pointer;
+    }
+    .fc-event:hover {
+        filter: brightness(0.95);
     }
     .fc-event-title {
         white-space: normal;
-    }
-    .success-message {
-        background: #d1fae5;
-        color: #065f46;
-        padding: 0.75rem;
-        border-radius: 4px;
-        margin-bottom: 1rem;
-        display: none;
-        font-size: 0.85rem;
-    }
-    .success-message.show {
-        display: block;
     }
     .page-header {
         display: flex;
@@ -158,10 +130,6 @@
         flex-wrap: wrap;
         gap: 1rem;
         margin-bottom: 1.5rem;
-    }
-    .calendar-header {
-        flex: 1;
-        min-width: 300px;
     }
     .btn {
         padding: 0.75rem 1.5rem;
@@ -179,6 +147,27 @@
     }
     .btn-primary:hover {
         background: #0052a3;
+    }
+    .calendar-alert {
+        display: none;
+        border-radius: 5px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding: 0.8rem 1rem;
+    }
+    .calendar-alert.show {
+        display: block;
+    }
+    .calendar-alert.success {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+    .calendar-alert.error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
     }
     .modal-overlay {
         display: none;
@@ -241,7 +230,14 @@
         border-top: 1px solid #e2e8f0;
         display: flex;
         gap: 0.75rem;
+        justify-content: space-between;
+        flex-wrap: wrap;
+    }
+    .modal-footer-actions {
+        display: flex;
+        gap: 0.75rem;
         justify-content: flex-end;
+        flex-wrap: wrap;
     }
     .modal-form-group {
         margin-bottom: 1.25rem;
@@ -292,12 +288,39 @@
     .modal-btn-primary:hover {
         background: #0052a3;
     }
+    .modal-btn-danger {
+        background: #dc2626;
+        color: white;
+    }
+    .modal-btn-danger:hover {
+        background: #b91c1c;
+    }
     .modal-btn-secondary {
         background: #e2e8f0;
         color: #334155;
     }
     .modal-btn-secondary:hover {
         background: #cbd5e1;
+    }
+    .event-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        margin-bottom: 1.25rem;
+        padding: 0.9rem 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        background: #f8fafc;
+        color: #475569;
+        font-size: 0.88rem;
+        font-weight: 600;
+    }
+    .event-meta-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex: 0 0 auto;
+        background: #16a34a;
     }
     @media (max-width: 1024px) {
         .calendar-shell {
@@ -319,6 +342,13 @@
             align-items: flex-start;
             flex-direction: column;
         }
+        .modal-footer,
+        .modal-footer-actions {
+            justify-content: stretch;
+        }
+        .modal-btn {
+            flex: 1 1 auto;
+        }
     }
 </style>
 
@@ -332,22 +362,45 @@
 
 <div class="calendar-shell">
     <div class="calendar-panel">
+        <div id="calendarAlert" class="calendar-alert"></div>
         <div id="calendar"></div>
     </div>
 
-    {{--  --}}
+    <aside class="calendar-sidebar">
+        <div class="sidebar-section">
+            <div class="section-title">Event Types</div>
+            <div class="legend-list">
+                <div class="legend-item">
+                    <span class="legend-dot" style="background:#2563eb;"></span>
+                    <span>Travel Order</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot" style="background:#16a34a;"></span>
+                    <span>Event</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-dot" style="background:#db2777;"></span>
+                    <span>Birthday</span>
+                </div>
+            </div>
+        </div>
+    </aside>
 </div>
 
-<!-- Add Event Modal -->
 <div class="modal-overlay" id="eventModalOverlay">
     <div class="modal-content">
         <div class="modal-header">
-            <h2 class="modal-title">Create New Event</h2>
-            <button class="modal-close" onclick="closeEventModal()">×</button>
+            <h2 class="modal-title" id="eventModalTitle">Create New Event</h2>
+            <button class="modal-close" onclick="closeEventModal()">&times;</button>
         </div>
         <form id="modalEventForm">
             @csrf
+            <input type="hidden" id="modalEventId">
             <div class="modal-body">
+                <div class="event-meta" id="eventMeta" style="display:none;">
+                    <span class="event-meta-dot" id="eventMetaDot"></span>
+                    <span id="eventMetaText"></span>
+                </div>
                 <div class="modal-form-group">
                     <label for="modalEventTitle">Title</label>
                     <input type="text" id="modalEventTitle" name="title" required placeholder="Event title">
@@ -376,8 +429,11 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="modal-btn modal-btn-secondary" onclick="closeEventModal()">Cancel</button>
-                <button type="submit" class="modal-btn modal-btn-primary">Create Event</button>
+                <button type="button" class="modal-btn modal-btn-danger" id="deleteEventButton" onclick="confirmDeleteEvent()" style="display:none;">Delete</button>
+                <div class="modal-footer-actions">
+                    <button type="button" class="modal-btn modal-btn-secondary" onclick="closeEventModal()">Cancel</button>
+                    <button type="submit" class="modal-btn modal-btn-primary" id="saveEventButton">Create Event</button>
+                </div>
             </div>
         </form>
     </div>
@@ -386,34 +442,100 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 <script>
     let calendar;
+    let deleteArmed = false;
 
-    // Color mapping for event types
     const typeColors = {
         'Travel Order': '#2563eb',
         'Event': '#16a34a',
         'Birthday': '#db2777'
     };
 
-    // Open event modal
-    function openEventModal() {
+    function getCsrfToken() {
+        return document.querySelector('input[name="_token"]').value;
+    }
+
+    function showCalendarAlert(message, type = 'success') {
+        const alert = document.getElementById('calendarAlert');
+        alert.textContent = message;
+        alert.className = `calendar-alert ${type} show`;
+
+        window.clearTimeout(alert.dataset.timer);
+        alert.dataset.timer = window.setTimeout(() => {
+            alert.classList.remove('show');
+        }, 3200);
+    }
+
+    function formatDisplayDate(dateValue) {
+        if (!dateValue) {
+            return '';
+        }
+
+        return new Date(`${dateValue}T00:00:00`).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+    }
+
+    function normalizeDateValue(dateValue) {
+        if (!dateValue) {
+            return '';
+        }
+
+        return String(dateValue).split('T')[0];
+    }
+
+    function setModalMode(mode, eventData = null) {
+        const isEdit = mode === 'edit';
+        const form = document.getElementById('modalEventForm');
+        const deleteButton = document.getElementById('deleteEventButton');
+        const eventMeta = document.getElementById('eventMeta');
+
+        form.reset();
+        deleteArmed = false;
+        deleteButton.textContent = 'Delete';
+        deleteButton.style.display = isEdit ? 'inline-flex' : 'none';
+        eventMeta.style.display = isEdit ? 'flex' : 'none';
+
+        document.getElementById('eventModalTitle').textContent = isEdit ? 'Edit Event' : 'Create New Event';
+        document.getElementById('saveEventButton').textContent = isEdit ? 'Save Changes' : 'Create Event';
+        document.getElementById('modalEventId').value = eventData?.id || '';
+
+        if (eventData) {
+            document.getElementById('modalEventTitle').value = eventData.title || '';
+            document.getElementById('modalEventType').value = eventData.type || '';
+            document.getElementById('modalEventStartDate').value = normalizeDateValue(eventData.start_date);
+            document.getElementById('modalEventEndDate').value = normalizeDateValue(eventData.end_date);
+            document.getElementById('modalEventDescription').value = eventData.description || '';
+            document.getElementById('modalEventRemarks').value = eventData.remarks || '';
+            document.getElementById('eventMetaDot').style.background = typeColors[eventData.type] || '#16a34a';
+            document.getElementById('eventMetaText').textContent = `${eventData.type} | ${formatDisplayDate(eventData.start_date)} to ${formatDisplayDate(eventData.end_date)}`;
+        }
+    }
+
+    function openEventModal(eventData = null) {
+        setModalMode(eventData ? 'edit' : 'create', eventData);
         document.getElementById('eventModalOverlay').classList.add('active');
     }
 
-    // Close event modal
     function closeEventModal() {
         document.getElementById('eventModalOverlay').classList.remove('active');
-        document.getElementById('modalEventForm').reset();
+        setModalMode('create');
     }
 
-    // Close modal when clicking outside
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         const modal = document.getElementById('eventModalOverlay');
         if (event.target == modal) {
             closeEventModal();
         }
     }
 
-    // Fetch event types from database
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            closeEventModal();
+        }
+    });
+
     async function fetchEventTypes() {
         try {
             const response = await fetch('/api/events/types');
@@ -424,11 +546,11 @@
         }
     }
 
-    // Populate event type dropdown
     async function populateEventTypeDropdown() {
         const select = document.getElementById('modalEventType');
         const types = await fetchEventTypes();
-        
+
+        select.innerHTML = '<option value="">Select event type...</option>';
         types.forEach(type => {
             const option = document.createElement('option');
             option.value = type;
@@ -437,44 +559,48 @@
         });
     }
 
-    // Fetch events from database
+    function toCalendarEvent(event) {
+        return {
+            id: event.id,
+            title: event.title,
+            start: normalizeDateValue(event.start_date),
+            end: new Date(new Date(normalizeDateValue(event.end_date)).getTime() + 24*60*60*1000).toISOString().split('T')[0],
+            color: typeColors[event.type] || '#16a34a',
+            extendedProps: {
+                id: event.id,
+                type: event.type,
+                description: event.description,
+                remarks: event.remarks,
+                start_date: normalizeDateValue(event.start_date),
+                end_date: normalizeDateValue(event.end_date)
+            }
+        };
+    }
+
     async function fetchEvents() {
         try {
             const response = await fetch('/api/events');
             const events = await response.json();
-            return events.map(event => ({
-                title: event.title,
-                start: event.start_date,
-                end: new Date(new Date(event.end_date).getTime() + 24*60*60*1000).toISOString().split('T')[0],
-                color: typeColors[event.type] || '#16a34a',
-                extendedProps: {
-                    type: event.type,
-                    description: event.description,
-                    remarks: event.remarks,
-                    id: event.id
-                }
-            }));
+            return events.map(toCalendarEvent);
         } catch (error) {
             console.error('Error fetching events:', error);
             return [];
         }
     }
 
-    // Initialize calendar
+    async function refreshCalendarEvents() {
+        const events = await fetchEvents();
+        calendar.removeAllEvents();
+        events.forEach(event => calendar.addEvent(event));
+    }
+
     document.addEventListener('DOMContentLoaded', async function () {
-        // Populate event type dropdown
         await populateEventTypeDropdown();
 
         const today = new Date();
-        const year = today.getFullYear();
-        const month = today.getMonth();
-        const pad = (value) => String(value).padStart(2, '0');
-        const dateFor = (day) => `${year}-${pad(month + 1)}-${pad(day)}`;
-
-        // Fetch custom events from database
         const customEvents = await fetchEvents();
-
         const calendarEl = document.getElementById('calendar');
+
         calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             initialDate: today,
@@ -486,16 +612,28 @@
                 center: 'title',
                 right: 'dayGridMonth,listMonth'
             },
-            events: customEvents
+            events: customEvents,
+            eventClick: function(info) {
+                const event = info.event;
+                openEventModal({
+                    id: event.extendedProps.id || event.id,
+                    title: event.title,
+                    type: event.extendedProps.type,
+                    start_date: event.extendedProps.start_date,
+                    end_date: event.extendedProps.end_date,
+                    description: event.extendedProps.description,
+                    remarks: event.extendedProps.remarks
+                });
+            }
         });
 
         calendar.render();
     });
 
-    // Handle modal form submission
     document.getElementById('modalEventForm').addEventListener('submit', async function(e) {
         e.preventDefault();
 
+        const eventId = document.getElementById('modalEventId').value;
         const formData = {
             title: document.getElementById('modalEventTitle').value,
             start_date: document.getElementById('modalEventStartDate').value,
@@ -503,12 +641,12 @@
             description: document.getElementById('modalEventDescription').value,
             remarks: document.getElementById('modalEventRemarks').value,
             type: document.getElementById('modalEventType').value,
-            _token: document.querySelector('input[name="_token"]').value
+            _token: getCsrfToken()
         };
 
         try {
-            const response = await fetch('/api/events', {
-                method: 'POST',
+            const response = await fetch(eventId ? `/api/events/${eventId}` : '/api/events', {
+                method: eventId ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': formData._token
@@ -517,24 +655,51 @@
             });
 
             if (response.ok) {
-                // Close modal
                 closeEventModal();
-
-                // Reload calendar events
-                const events = await fetchEvents();
-                calendar.getEvents().forEach(event => {
-                    if (event.extendedProps.id) {
-                        event.remove();
-                    }
-                });
-                events.forEach(event => calendar.addEvent(event));
+                await refreshCalendarEvents();
+                showCalendarAlert(eventId ? 'Event updated successfully.' : 'Event created successfully.');
             } else {
-                alert('Error creating event');
+                showCalendarAlert('Please check the event details and try again.', 'error');
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error creating event');
+            showCalendarAlert('Unable to save event right now.', 'error');
         }
     });
+
+    async function confirmDeleteEvent() {
+        const eventId = document.getElementById('modalEventId').value;
+        const deleteButton = document.getElementById('deleteEventButton');
+
+        if (!eventId) {
+            return;
+        }
+
+        if (!deleteArmed) {
+            deleteArmed = true;
+            deleteButton.textContent = 'Confirm Delete';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/events/${eventId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': getCsrfToken()
+                }
+            });
+
+            if (response.ok) {
+                closeEventModal();
+                await refreshCalendarEvents();
+                showCalendarAlert('Event deleted successfully.');
+            } else {
+                showCalendarAlert('Unable to delete event right now.', 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showCalendarAlert('Unable to delete event right now.', 'error');
+        }
+    }
 </script>
 @endsection
